@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.red,
+        colorSchemeSeed: Colors.redAccent,
         scaffoldBackgroundColor: Colors.black,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
@@ -29,10 +29,10 @@ class MyApp extends StatelessWidget {
           unselectedItemColor: Colors.grey,
           showUnselectedLabels: true,
         ),
-        cardTheme: CardThemeData(
-          color: Colors.grey[850],
+        cardTheme: const CardThemeData(
+          color: Color(0xFF1E1E1E),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
           elevation: 8,
         ),
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           hintStyle: const TextStyle(color: Colors.grey),
           prefixIconColor: Colors.redAccent,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
             borderSide: BorderSide.none,
           ),
         ),
@@ -67,7 +67,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     SexoPage(),
     TelefonoPage(),
     PersonaPage(),
-    Placeholder(),
+    AcercaDePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -80,15 +80,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text("SICA - Registro Futurista"),
+        title: const Text("SICA - Registro - Johnny Tenorio"),
         centerTitle: true,
       ),
       body: Stack(
         children: [
-          // Fondo animado futurista
           Positioned.fill(child: AnimatedBackground()),
-          _pages[_selectedIndex],
+          SafeArea(child: _pages[_selectedIndex]),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -119,10 +119,9 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat(reverse: true);
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 10))
+          ..repeat(reverse: true);
   }
 
   @override
@@ -142,7 +141,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
               colors: [
                 Colors.black,
                 Colors.grey[900]!,
-                Colors.redAccent[700]!.withOpacity(0.6),
+                Colors.redAccent.withOpacity(0.4),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -155,7 +154,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   }
 }
 
-// --- Modelos ---
+// --- MODELOS ---
 class Sexo {
   final String idsexo;
   final String nombre;
@@ -204,7 +203,7 @@ class Persona {
   }
 }
 
-// --- Página Sexo ---
+// --- Página SEXO ---
 class SexoPage extends StatefulWidget {
   const SexoPage({super.key});
   @override
@@ -223,22 +222,20 @@ class _SexoPageState extends State<SexoPage> {
   }
 
   Future<void> _fetchSexoData() async {
-    setState(() => _isLoading = true);
     try {
       final response = await http.get(
         Uri.parse(
-          'https://educaysoft.org/apple6b/app/controllers/SexoController.php?action=api',
-        ),
+            'https://educaysoft.org/apple6b/app/controllers/SexoController.php?action=api'),
       );
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
         setState(() {
-          _sexoList = data.map((item) => Sexo.fromJson(item)).toList();
+          _sexoList = data.map((e) => Sexo.fromJson(e)).toList();
           _filteredSexoList = _sexoList;
         });
       }
     } catch (e) {
-      print('Error al obtener datos de Sexo: $e');
+      print('Error al obtener datos: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -247,11 +244,9 @@ class _SexoPageState extends State<SexoPage> {
   void _filterSearch(String query) {
     setState(() {
       _filteredSexoList = _sexoList
-          .where(
-            (item) =>
-                item.nombre.toLowerCase().contains(query.toLowerCase()) ||
-                item.idsexo.contains(query),
-          )
+          .where((item) =>
+              item.nombre.toLowerCase().contains(query.toLowerCase()) ||
+              item.idsexo.contains(query))
           .toList();
     });
   }
@@ -265,49 +260,40 @@ class _SexoPageState extends State<SexoPage> {
           child: TextField(
             onChanged: _filterSearch,
             style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Buscar Sexo',
               hintText: 'Ingrese nombres o ID',
-              prefixIcon: const Icon(Icons.search, color: Colors.redAccent),
-              filled: true,
-              fillColor: Colors.grey[900],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
-              ),
+              prefixIcon: Icon(Icons.search, color: Colors.redAccent),
             ),
           ),
         ),
         Expanded(
           child: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent),
-                )
+                  child: CircularProgressIndicator(color: Colors.redAccent))
               : _filteredSexoList.isEmpty
-              ? const Center(
-                  child: Text(
-                    "No hay datos de Sexo disponibles",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _filteredSexoList.length,
-                  itemBuilder: (context, index) {
-                    final sexo = _filteredSexoList[index];
-                    return FuturisticCard(
-                      icon: Icons.people,
-                      title: sexo.nombre,
-                      subtitle: "ID: ${sexo.idsexo}",
-                    );
-                  },
-                ),
+                  ? const Center(
+                      child: Text("No hay datos de Sexo disponibles",
+                          style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredSexoList.length,
+                      itemBuilder: (context, index) {
+                        final sexo = _filteredSexoList[index];
+                        return FuturisticCard(
+                          icon: Icons.people,
+                          title: sexo.nombre,
+                          subtitle: "ID: ${sexo.idsexo}",
+                        );
+                      },
+                    ),
         ),
       ],
     );
   }
 }
 
-// --- Página Teléfono ---
+// --- Página TELEFONO ---
 class TelefonoPage extends StatefulWidget {
   const TelefonoPage({super.key});
   @override
@@ -326,22 +312,20 @@ class _TelefonoPageState extends State<TelefonoPage> {
   }
 
   Future<void> _fetchTelefonoData() async {
-    setState(() => _isLoading = true);
     try {
       final response = await http.get(
         Uri.parse(
-          'https://educaysoft.org/apple6b/app/controllers/TelefonoController.php?action=api',
-        ),
+            'https://educaysoft.org/apple6b/app/controllers/TelefonoController.php?action=api'),
       );
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
         setState(() {
-          _telefonoList = data.map((item) => Telefono.fromJson(item)).toList();
+          _telefonoList = data.map((e) => Telefono.fromJson(e)).toList();
           _filteredTelefonoList = _telefonoList;
         });
       }
     } catch (e) {
-      print('Error al obtener datos de Telefono: $e');
+      print('Error al obtener datos: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -350,11 +334,9 @@ class _TelefonoPageState extends State<TelefonoPage> {
   void _filterSearch(String query) {
     setState(() {
       _filteredTelefonoList = _telefonoList
-          .where(
-            (item) =>
-                item.numero.toLowerCase().contains(query.toLowerCase()) ||
-                item.idtelefono.contains(query),
-          )
+          .where((item) =>
+              item.numero.toLowerCase().contains(query.toLowerCase()) ||
+              item.idtelefono.contains(query))
           .toList();
     });
   }
@@ -368,49 +350,40 @@ class _TelefonoPageState extends State<TelefonoPage> {
           child: TextField(
             onChanged: _filterSearch,
             style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Buscar Telefono',
-              hintText: 'Ingrese numeros o ID',
-              prefixIcon: const Icon(Icons.phone, color: Colors.redAccent),
-              filled: true,
-              fillColor: Colors.grey[900],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
-              ),
+              hintText: 'Ingrese número o ID',
+              prefixIcon: Icon(Icons.phone, color: Colors.redAccent),
             ),
           ),
         ),
         Expanded(
           child: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent),
-                )
+                  child: CircularProgressIndicator(color: Colors.redAccent))
               : _filteredTelefonoList.isEmpty
-              ? const Center(
-                  child: Text(
-                    "No hay datos de Telefono disponibles",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _filteredTelefonoList.length,
-                  itemBuilder: (context, index) {
-                    final telefono = _filteredTelefonoList[index];
-                    return FuturisticCard(
-                      icon: Icons.phone,
-                      title: telefono.numero,
-                      subtitle: "ID: ${telefono.idtelefono}",
-                    );
-                  },
-                ),
+                  ? const Center(
+                      child: Text("No hay datos de Telefono disponibles",
+                          style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredTelefonoList.length,
+                      itemBuilder: (context, index) {
+                        final telefono = _filteredTelefonoList[index];
+                        return FuturisticCard(
+                          icon: Icons.phone,
+                          title: telefono.numero,
+                          subtitle: "ID: ${telefono.idtelefono}",
+                        );
+                      },
+                    ),
         ),
       ],
     );
   }
 }
 
-// --- Página Persona ---
+// --- Página PERSONA ---
 class PersonaPage extends StatefulWidget {
   const PersonaPage({super.key});
   @override
@@ -429,22 +402,20 @@ class _PersonaPageState extends State<PersonaPage> {
   }
 
   Future<void> _fetchPersonaData() async {
-    setState(() => _isLoading = true);
     try {
       final response = await http.get(
         Uri.parse(
-          'https://educaysoft.org/apple6b/app/controllers/PersonaController.php?action=api',
-        ),
+            'https://educaysoft.org/apple6b/app/controllers/PersonaController.php?action=api'),
       );
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
         setState(() {
-          _personaList = data.map((item) => Persona.fromJson(item)).toList();
+          _personaList = data.map((e) => Persona.fromJson(e)).toList();
           _filteredPersonaList = _personaList;
         });
       }
     } catch (e) {
-      print('Error al obtener datos de Persona: $e');
+      print('Error al obtener datos: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -453,12 +424,10 @@ class _PersonaPageState extends State<PersonaPage> {
   void _filterSearch(String query) {
     setState(() {
       _filteredPersonaList = _personaList
-          .where(
-            (item) =>
-                item.nombres.toLowerCase().contains(query.toLowerCase()) ||
-                item.apellidos.toLowerCase().contains(query.toLowerCase()) ||
-                item.fechanacimiento.contains(query),
-          )
+          .where((item) =>
+              item.nombres.toLowerCase().contains(query.toLowerCase()) ||
+              item.apellidos.toLowerCase().contains(query.toLowerCase()) ||
+              item.fechanacimiento.contains(query))
           .toList();
     });
   }
@@ -472,45 +441,52 @@ class _PersonaPageState extends State<PersonaPage> {
           child: TextField(
             onChanged: _filterSearch,
             style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Buscar Persona',
-              hintText: 'Ingrese nombres, apellidos o cédula',
-              prefixIcon: const Icon(Icons.person, color: Colors.redAccent),
-              filled: true,
-              fillColor: Colors.grey[900],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
-              ),
+              hintText: 'Ingrese nombres, apellidos o fecha',
+              prefixIcon: Icon(Icons.person, color: Colors.redAccent),
             ),
           ),
         ),
         Expanded(
           child: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent),
-                )
+                  child: CircularProgressIndicator(color: Colors.redAccent))
               : _filteredPersonaList.isEmpty
-              ? const Center(
-                  child: Text(
-                    "No hay datos de Persona disponibles",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _filteredPersonaList.length,
-                  itemBuilder: (context, index) {
-                    final persona = _filteredPersonaList[index];
-                    return FuturisticCard(
-                      icon: Icons.person,
-                      title: "${persona.nombres} ${persona.apellidos}",
-                      subtitle:
-                          "Nacimiento: ${persona.fechanacimiento}\nSexo: ${persona.elsexo}\nEstado Civil: ${persona.elestadocivil}",
-                    );
-                  },
-                ),
+                  ? const Center(
+                      child: Text("No hay datos de Persona disponibles",
+                          style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredPersonaList.length,
+                      itemBuilder: (context, index) {
+                        final persona = _filteredPersonaList[index];
+                        return FuturisticCard(
+                          icon: Icons.person,
+                          title:
+                              "${persona.nombres} ${persona.apellidos}",
+                          subtitle:
+                              "Nacimiento: ${persona.fechanacimiento}\nSexo: ${persona.elsexo}\nEstado Civil: ${persona.elestadocivil}",
+                        );
+                      },
+                    ),
         ),
       ],
+    );
+  }
+}
+
+// --- Página ACERCA DE ---
+class AcercaDePage extends StatelessWidget {
+  const AcercaDePage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        "Aplicación SICA - Desarrollado por Johnny Tenorio\nVersión 1.0",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 16),
+      ),
     );
   }
 }
@@ -556,11 +532,8 @@ class FuturisticCard extends StatelessWidget {
             subtitle,
             style: const TextStyle(color: Colors.grey, height: 1.4),
           ),
-          trailing: const Icon(
-            Icons.arrow_forward_ios,
-            size: 18,
-            color: Colors.redAccent,
-          ),
+          trailing:
+              const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.redAccent),
         ),
       ),
     );
