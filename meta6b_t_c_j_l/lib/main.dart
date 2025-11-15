@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'pages/sexo_crud_page.dart';
+import 'pages/telefono_crud_page.dart';
+import 'pages/persona_crud_page.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -224,8 +228,7 @@ class _SexoPageState extends State<SexoPage> {
   Future<void> _fetchSexoData() async {
     try {
       final response = await http.get(
-        Uri.parse(
-            'https://educaysoft.org/apple6b/app/controllers/SexoController.php?action=api'),
+        Uri.parse('https://educaysoft.org/apple6b/app/controllers/SexoController.php?action=api'),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List;
@@ -255,6 +258,8 @@ class _SexoPageState extends State<SexoPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+
+        // ---------------------- BUSCADOR ----------------------
         Padding(
           padding: const EdgeInsets.all(10),
           child: TextField(
@@ -267,6 +272,28 @@ class _SexoPageState extends State<SexoPage> {
             ),
           ),
         ),
+
+        // ---------------------- BOTÓN NUEVO ----------------------
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SexoCrudPage()),
+              );
+            },
+            child: const Text("Datos de Sexo"),
+          ),
+        ),
+        // ---------------------------------------------------------
+
         Expanded(
           child: _isLoading
               ? const Center(
@@ -292,6 +319,7 @@ class _SexoPageState extends State<SexoPage> {
     );
   }
 }
+
 
 // --- Página TELEFONO ---
 class TelefonoPage extends StatefulWidget {
@@ -341,46 +369,71 @@ class _TelefonoPageState extends State<TelefonoPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: TextField(
-            onChanged: _filterSearch,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Buscar Telefono',
-              hintText: 'Ingrese número o ID',
-              prefixIcon: Icon(Icons.phone, color: Colors.redAccent),
-            ),
+@override
+Widget build(BuildContext context) {
+  return Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(10),
+        child: TextField(
+          onChanged: _filterSearch,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Buscar Telefono',
+            hintText: 'Ingrese número o ID',
+            prefixIcon: Icon(Icons.phone, color: Colors.redAccent),
           ),
         ),
-        Expanded(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent))
-              : _filteredTelefonoList.isEmpty
-                  ? const Center(
-                      child: Text("No hay datos de Telefono disponibles",
-                          style: TextStyle(color: Colors.white)),
-                    )
-                  : ListView.builder(
-                      itemCount: _filteredTelefonoList.length,
-                      itemBuilder: (context, index) {
-                        final telefono = _filteredTelefonoList[index];
-                        return FuturisticCard(
-                          icon: Icons.phone,
-                          title: telefono.numero,
-                          subtitle: "ID: ${telefono.idtelefono}",
-                        );
-                      },
-                    ),
+      ),
+
+      // ---------------------- BOTÓN CRUD TELÉFONO ----------------------
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TelefonoCrudPage(),
+              ),
+            );
+          },
+          child: const Text("Datos de Teléfono"),
         ),
-      ],
-    );
-  }
+      ),
+
+      Expanded(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.redAccent))
+            : _filteredTelefonoList.isEmpty
+                ? const Center(
+                    child: Text(
+                      "No hay datos de Telefono disponibles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _filteredTelefonoList.length,
+                    itemBuilder: (context, index) {
+                      final telefono = _filteredTelefonoList[index];
+                      return FuturisticCard(
+                        icon: Icons.phone,
+                        title: telefono.numero,
+                        subtitle: "ID: ${telefono.idtelefono}",
+                      );
+                    },
+                  ),
+      ),
+    ],
+  );
+}
 }
 
 // --- Página PERSONA ---
@@ -432,48 +485,73 @@ class _PersonaPageState extends State<PersonaPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: TextField(
-            onChanged: _filterSearch,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Buscar Persona',
-              hintText: 'Ingrese nombres, apellidos o fecha',
-              prefixIcon: Icon(Icons.person, color: Colors.redAccent),
-            ),
+@override
+Widget build(BuildContext context) {
+  return Column(
+    children: [
+      // --- BUSCADOR ---
+      Padding(
+        padding: const EdgeInsets.all(10),
+        child: TextField(
+          onChanged: _filterSearch,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Buscar Persona',
+            hintText: 'Ingrese nombres, apellidos o fecha',
+            prefixIcon: Icon(Icons.person, color: Colors.redAccent),
           ),
         ),
-        Expanded(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent))
-              : _filteredPersonaList.isEmpty
-                  ? const Center(
-                      child: Text("No hay datos de Persona disponibles",
-                          style: TextStyle(color: Colors.white)),
-                    )
-                  : ListView.builder(
-                      itemCount: _filteredPersonaList.length,
-                      itemBuilder: (context, index) {
-                        final persona = _filteredPersonaList[index];
-                        return FuturisticCard(
-                          icon: Icons.person,
-                          title:
-                              "${persona.nombres} ${persona.apellidos}",
-                          subtitle:
-                              "Nacimiento: ${persona.fechanacimiento}\nSexo: ${persona.elsexo}\nEstado Civil: ${persona.elestadocivil}",
-                        );
-                      },
-                    ),
+      ),
+
+      // --- BOTÓN CRUD PERSONA ---
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PersonaCrudPage(),
+              ),
+            );
+          },
+          child: const Text("Datos de Persona"),
         ),
-      ],
-    );
-  }
+      ),
+
+      Expanded(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.redAccent))
+            : _filteredPersonaList.isEmpty
+                ? const Center(
+                    child: Text(
+                      "No hay datos de Persona disponibles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _filteredPersonaList.length,
+                    itemBuilder: (context, index) {
+                      final persona = _filteredPersonaList[index];
+                      return FuturisticCard(
+                        icon: Icons.person,
+                        title: "${persona.nombres} ${persona.apellidos}",
+                        subtitle:
+                            "Nacimiento: ${persona.fechanacimiento}\nSexo: ${persona.elsexo}\nEstado Civil: ${persona.elestadocivil}",
+                      );
+                    },
+                  ),
+      ),
+    ],
+  );
+}
 }
 
 // --- Página ACERCA DE ---
